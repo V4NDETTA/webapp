@@ -1,44 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Picks Lobby</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFT Leaderboard</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Custom Picks Lobby</h1>
+    <nav class="navbar">
+        <div class="navbar-title">DOUBLE UP LEADERBAORD</div>
+    </nav>
 
-  <div id="auth-container">
-    <h2>Sign Up / Sign In</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <input type="text" id="name" placeholder="Name">
-    <button id="signup-button">Sign Up</button>
-    <button id="signin-button">Sign In</button>
-  </div>
+    <div class="content">
+        <h2>RANKING MOROCCAN PLAYERS</h2>
+        <div class="table-container">
+            <table id="leaderboard">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Players</th>
+                        <th>Tier</th>
+                        <th>Wins</th>
+                        <th>LP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!-- Rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
 
-  <div id="lobby-container" style="display: none;">
-    <h2>Create Lobby</h2>
-    <input type="text" id="lobby-name" placeholder="Lobby Name">
-    <input type="password" id="lobby-password" placeholder="Lobby Password">
-    <button id="create-lobby-button">Create Lobby</button>
 
-    <h2>Join Lobby</h2>
-    <input type="text" id="join-lobby-id" placeholder="Lobby ID">
-    <input type="password" id="join-lobby-password" placeholder="Lobby Password">
-    <select id="team-select">
-      <option value="Blue">Blue</option>
-      <option value="Red">Red</option>
-    </select>
-    <button id="join-lobby-button">Join Lobby</button>
+    <script>
+        const apiUrls = [
+            'https://tft-api.op.gg/api/v1/na/summoners/d6yuoUb0buZssKO0FgpERX_XiptPZZ1xM9fQY6EqTVyXUi3sGk9IKjOdEw',
+            'https://tft-api.op.gg/api/v1/euw/summoners/3tZqTeuCPQIi33QGdqpxJMfw75I7VZxpI1y9XZwvjkeGjxQ',
+            'https://tft-api.op.gg/api/v1/euw/summoners/KMIUejYByKAWtKVRxg7_wH3nb49eBMk62_znMD01PMMX581l',
+            'https://tft-api.op.gg/api/v1/euw/summoners/aPevpRBIq-JAOo-YHXYQe_0cmhKELWFt8REbBkqd5_-hItEg24BNW3nH6w',
+            'https://tft-api.op.gg/api/v1/ru/summoners/O8xF1r40yoDEWCmYszA0A1WvDihRUt6xZw-I3eZ6RVcJb-ICjKdZOyBHog',
+            'https://tft-api.op.gg/api/v1/euw/summoners/lgpj4PSEUx40mQj9MOh8Gp0ZkPrUOZQ74ipWDAzN0vfyXDKpck6YxVWCkQ',
+            'https://tft-api.op.gg/api/v1/na/summoners/jSPA4KfnPApduu7cyEPqJWVSekSfmy9R9NcxBJuA7ajBFkY99S73O_GJgw'
+        ];
 
-    <h2>Start Lobby</h2>
-    <input type="text" id="start-lobby-id" placeholder="Lobby ID">
-    <button id="start-lobby-button">Start Lobby</button>
-  </div>
+        const tierOrder = [
+            'CHALLENGER',
+            'GRANDMASTER',
+            'MASTER',
+            'DIAMOND',
+            'EMERALD',
+            'PLATINUM',
+            'GOLD',
+            'SILVER',
+            'BRONZE',
+            'IRON'
+        ];
 
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="main.js"></script>
+        function fetchPlayerData(url) {
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const summoner = data.data.summoner;
+                    const entry = summoner.entry.RANKED_TFT_DOUBLE_UP;
+                    const profileIconId = summoner.profileIconId; // Get profile icon ID
+                    return {
+                        gameName: summoner.gameName,
+                        tier: entry.tier,
+                        rank: entry.rank,
+                        leaguePoints: entry.leaguePoints,
+                        wins: entry.wins,
+                        profileIconId: profileIconId // Store profile icon ID
+                    };
+                });
+        }
+        function insertRow(playerData, index) {
+            const table = document.getElementById('leaderboard').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+
+            const cell0 = newRow.insertCell(0);
+            const cell1 = newRow.insertCell(1);
+            const cell2 = newRow.insertCell(2);
+            const cell3 = newRow.insertCell(3);
+            const cell4 = newRow.insertCell(4);
+
+            cell0.textContent = index + 1;
+
+            // Create a container for the icon and name
+            const iconContainer = document.createElement('div');
+            iconContainer.classList.add('icon-container');
+
+            // Create an image element for the profile icon
+            const iconImg = document.createElement('img');
+            iconImg.src = `https://ddragon.leagueoflegends.com/cdn/14.13.1/img/profileicon/${playerData.profileIconId}.png`;
+            iconImg.alt = 'Profile Icon';
+            iconImg.classList.add('icon-img'); // Add class for styling
+            iconContainer.appendChild(iconImg); // Append the icon to the container
+
+            // Create a span for the player's name
+            const playerName = document.createElement('span');
+            playerName.textContent = playerData.gameName;
+            playerName.classList.add('player-name'); // Add class for styling
+            iconContainer.appendChild(playerName); // Append the name to the container
+
+            cell1.appendChild(iconContainer); // Append icon and name container to Player column
+
+            // Create a container for tier information
+            const tierContainer = document.createElement('div');
+            tierContainer.classList.add('tier-container');
+
+            // Create an image element for the rank icon in the Tier column
+            const tierIcon = document.createElement('img');
+            tierIcon.src = `https://static.bigbrain.gg/assets/lol/ranks/s13/mini/${playerData.tier.toLowerCase()}.svg`; // Assuming tier names match the image names
+            tierIcon.alt = `${playerData.tier} Icon`;
+            tierIcon.classList.add('tier-icon'); // Add class for styling
+            tierContainer.appendChild(tierIcon); // Append tier icon to tier container
+
+            // Create a span for the tier text (including rank if available)
+            const tierText = document.createElement('span');
+            if (playerData.rank) {
+                tierText.textContent = `${playerData.tier} ${playerData.rank}`;
+            } else {
+                tierText.textContent = playerData.tier;
+            }
+            tierText.classList.add('tier-text'); // Add class for styling
+            tierContainer.appendChild(tierText); // Append tier text to tier container
+
+            cell2.innerHTML = ''; // Clear existing content in Tier cell
+            cell2.appendChild(tierContainer); // Append tier container to Tier cell
+
+            cell3.textContent = playerData.wins;
+            cell4.textContent = playerData.leaguePoints;
+        }
+
+
+
+
+
+
+
+        async function populateLeaderboard() {
+            const playerDataPromises = apiUrls.map(url => fetchPlayerData(url));
+            let playersData = await Promise.all(playerDataPromises);
+
+        playersData.sort((a, b) => {
+            // Function to normalize tier names by removing ' I' suffix
+            const normalizeTier = (tier) => {
+                if (tier.endsWith(' I')) {
+                    return tier.slice(0, -2); // Remove ' I' from the end
+                }
+                return tier;
+            };
+
+            // Compare normalized tier names
+            const tierA = normalizeTier(a.tier);
+            const tierB = normalizeTier(b.tier);
+
+            const tierDiff = tierOrder.indexOf(tierA) - tierOrder.indexOf(tierB);
+            if (tierDiff === 0) {
+                // Sort by rank within the same tier
+                const rankOrder = parseInt(a.rank) - parseInt(b.rank);
+                if (rankOrder === 0) {
+                    // Sort by league points if ranks are the same
+                    return b.leaguePoints - a.leaguePoints;
+                }
+                return rankOrder;
+            }
+            return tierDiff;
+        });
+
+
+
+
+
+            playersData.forEach((playerData, index) => insertRow(playerData, index));
+        }
+
+        populateLeaderboard().catch(error => console.error('Error fetching data:', error));
+    </script>
 </body>
 </html>
